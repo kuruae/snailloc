@@ -6,7 +6,9 @@ t_chunk_header *find_free_chunk(t_zone_header *zone, size_t size) {
 	t_chunk_header *it = get_first_chunk(zone);
 
 	while (it != NULL && (void *)it < zone->break_ptr) {
-		if (UNLIKELY(it->free == 1 && it->size >= size))
+		if (UNLIKELY(
+			atomic_load_explicit(&it->free, memory_order_acquire) == 1
+			&& it->size >= size))
 			return it;
 		it = next_chunk(it);
 	}
@@ -26,10 +28,11 @@ void *carve_chunk(t_zone_header *zone, size_t size) {
 
 	t_chunk_header *new_chunk = (t_chunk_header *)zone->break_ptr;
 
+	new_chunk->zone_off = (uint32_t)((char *)new_chunk - (char *)zone);
+	atomic_store_explicit(&new_chunk->free, 0, memory_order_release);
 	new_chunk->size = aligned_size;
-	new_chunk->free = 0;
 	new_chunk->zone_type = zone->type;
-	
+
 	zone->break_ptr = (char *)zone->break_ptr + needed;
 
 	return get_ptr_from_chunk(new_chunk);

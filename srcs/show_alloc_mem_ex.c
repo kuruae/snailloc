@@ -193,7 +193,10 @@ void show_alloc_mem_ex(void) {
 
 	total += show_zone_list_ex(g_thread_zones.tiny, "TINY", show_hexdump);
 	total += show_zone_list_ex(g_thread_zones.small, "SMALL", show_hexdump);
-	total += show_zone_list_ex(g_thread_zones.large, "LARGE", show_hexdump);
+
+	pthread_mutex_lock(&g_large_mutex);
+	total += show_zone_list_ex(g_large_zones, "LARGE", show_hexdump);
+	pthread_mutex_unlock(&g_large_mutex);
 
 	ft_printf("Total : %u bytes\n", (unsigned int)total);
 }

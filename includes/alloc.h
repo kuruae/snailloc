@@ -3,6 +3,7 @@
 
 #define _DEFAULT_SOURCE
 #include <stdalign.h>
+#include <stdatomic.h>
 #include <stdint.h>
 #include <sys/mman.h>
 #include <pthread.h>
@@ -30,26 +31,25 @@ typedef struct s_zone_header {
 	size_t                  zone_size;
 	t_zone_type             type;
 	void                    *break_ptr;
+	pthread_t               owner;
 } __attribute__((aligned(ALIGNMENT))) t_zone_header;
 
 typedef struct s_chunk_header {
 	size_t                  size;
-	uint8_t                 free;
+	uint32_t                zone_off;
+	_Atomic uint8_t         free;
 	uint8_t                 zone_type;
 } __attribute__((aligned(ALIGNMENT))) t_chunk_header;
 
 typedef struct s_zones {
 	t_zone_header   *tiny;
 	t_zone_header   *small;
-	t_zone_header   *large;
 } t_zones;
 
 extern __thread t_zones g_thread_zones;
 
-typedef struct s_thread_safety {
-    pthread_key_t   cleanup_key;
-    pthread_once_t  cleanup_once;
-} t_thread_safety;
+extern pthread_mutex_t  g_large_mutex;
+extern t_zone_header    *g_large_zones;
 
 void    *malloc(size_t size) ATTR_HOT ATTR_MALLOC;
 void    free(void *ptr) ATTR_HOT;
