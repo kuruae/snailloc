@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <string.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void *malloc(size_t size);
@@ -28,7 +28,8 @@ static void *allocator_thread(void *arg) {
         }
         memset(w->ptrs[i], 0xAB, w->size);
     }
-    if (w->ready) __atomic_store_n(w->ready, 1, __ATOMIC_RELEASE);
+    if (w->ready)
+        __atomic_store_n(w->ready, 1, __ATOMIC_RELEASE);
     // Stay alive until the freeer is done
     while (__atomic_load_n(w->ready, __ATOMIC_ACQUIRE) != 2)
         usleep(1000);
@@ -99,10 +100,12 @@ static void *mixed_worker(void *arg) {
     void *ptrs[30];
     for (int i = 0; i < 30; i++) {
         ptrs[i] = malloc((i % 3 == 0) ? 64 : (i % 3 == 1) ? 500 : 10000);
-        if (ptrs[i]) memset(ptrs[i], 0x42, (i % 3 == 0) ? 64 : (i % 3 == 1) ? 500 : 64);
+        if (ptrs[i])
+            memset(ptrs[i], 0x42, (i % 3 == 0) ? 64 : (i % 3 == 1) ? 500 : 64);
     }
     for (int i = 0; i < 30; i++) {
-        if (ptrs[i]) free(ptrs[i]);
+        if (ptrs[i])
+            free(ptrs[i]);
     }
     return NULL;
 }

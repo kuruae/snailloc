@@ -12,24 +12,22 @@
 
 #include "libft.h"
 
-char	*ft_strjoinch(char *s1, char c)
-{
-	char	*result;
-	int		i;
+char *ft_strjoinch(char *s1, char c) {
+    char *result;
+    int i;
 
-	if (!s1)
-		return (NULL);
-	result = malloc(sizeof(char) * (ft_strlen(s1) + 2));
-	if (!result)
-		return (NULL);
-	i = 0;
-	while (s1 && s1[i])
-	{
-		result[i] = s1[i];
-		i++;
-	}
-	result[i] = c;
-	i++;
-	result[i] = '\0';
-	return (result);
+    if (!s1)
+        return (NULL);
+    result = malloc(sizeof(char) * (ft_strlen(s1) + 2));
+    if (!result)
+        return (NULL);
+    i = 0;
+    while (s1 && s1[i]) {
+        result[i] = s1[i];
+        i++;
+    }
+    result[i] = c;
+    i++;
+    result[i] = '\0';
+    return (result);
 }

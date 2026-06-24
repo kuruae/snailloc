@@ -12,38 +12,36 @@
 
 #include "libft.h"
 
-static int	join_len(char const *s1, char const *s2)
-{
-	int	len1;
-	int	len2;
-	int	total_len;
+static int join_len(char const *s1, char const *s2) {
+    int len1;
+    int len2;
+    int total_len;
 
-	len1 = ft_strlen(s1);
-	len2 = ft_strlen(s2);
-	total_len = len1 + len2;
-	return (total_len);
+    len1 = ft_strlen(s1);
+    len2 = ft_strlen(s2);
+    total_len = len1 + len2;
+    return (total_len);
 }
 
-char	*ft_strjoin(char const *s1, char const *s2)
-{
-	int		i;
-	int		j;
-	int		total_len;
-	char	*str;
+char *ft_strjoin(char const *s1, char const *s2) {
+    int i;
+    int j;
+    int total_len;
+    char *str;
 
-	i = 0;
-	j = 0;
-	if (!s1 || !s2)
-		return (NULL);
-	total_len = join_len(s1, s2);
-	str = malloc((total_len + 1) * sizeof(char));
-	if (!str)
-		return (NULL);
-	while (s1[j])
-		str[i++] = s1[j++];
-	j = 0;
-	while (s2[j])
-		str[i++] = s2[j++];
-	str[i] = '\0';
-	return (str);
+    i = 0;
+    j = 0;
+    if (!s1 || !s2)
+        return (NULL);
+    total_len = join_len(s1, s2);
+    str = malloc((total_len + 1) * sizeof(char));
+    if (!str)
+        return (NULL);
+    while (s1[j])
+        str[i++] = s1[j++];
+    j = 0;
+    while (s2[j])
+        str[i++] = s2[j++];
+    str[i] = '\0';
+    return (str);
 }

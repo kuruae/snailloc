@@ -1,7 +1,7 @@
 #include <pthread.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define THREAD_COUNT 10
 #define ITERATIONS 5000
@@ -23,7 +23,7 @@ void *stress_test(void *arg) {
     for (int i = 0; i < ITERATIONS; i++) {
         free(ptrs[i]);
     }
-    
+
     return NULL;
 }
 

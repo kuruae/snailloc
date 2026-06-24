@@ -1,56 +1,39 @@
-#include "alloc.h"
 #include "chunk_utils.h"
+#include "alloc.h"
 #include "compiler_attrs.h"
 
 t_chunk_header *find_free_chunk(t_zone_header *zone, size_t size) {
-	t_chunk_header *it = get_first_chunk(zone);
-
-	while (it != NULL && (void *)it < zone->break_ptr) {
-		if (UNLIKELY(
-			atomic_load_explicit(&it->free, memory_order_acquire) == 1
-			&& it->size >= size))
-			return it;
-		it = next_chunk(it);
-	}
-	return NULL;
+    t_chunk_header *head = atomic_load_explicit(&zone->free_list, memory_order_acquire);
+    while (head) {
+        t_chunk_header *next = CHUNK_NEXT_FREE(head);
+        if (head->size >= size) {
+            if (atomic_compare_exchange_weak_explicit(&zone->free_list, &head, next,
+                                                      memory_order_acquire, memory_order_acquire))
+                return head;
+        } else {
+            break;
+        }
+    }
+    return NULL;
 }
 
-static inline size_t align_size(size_t size) {
-	return (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1);
-}
+static inline size_t align_size(size_t size) { return (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1); }
 
 void *carve_chunk(t_zone_header *zone, size_t size) {
-	size_t aligned_size = align_size(size);
-	size_t needed = aligned_size + sizeof(t_chunk_header);
+    size_t aligned_size = align_size(size);
+    size_t needed = aligned_size + sizeof(t_chunk_header);
 
-	if (UNLIKELY((char *)zone->break_ptr + needed > (char *)zone + zone->zone_size))
-		return NULL;
+    if (UNLIKELY((char *)zone->break_ptr + needed > (char *)zone + zone->zone_size))
+        return NULL;
 
-	t_chunk_header *new_chunk = (t_chunk_header *)zone->break_ptr;
+    t_chunk_header *new_chunk = (t_chunk_header *)zone->break_ptr;
 
-	new_chunk->zone_off = (uint32_t)((char *)new_chunk - (char *)zone);
-	atomic_store_explicit(&new_chunk->free, 0, memory_order_release);
-	new_chunk->size = aligned_size;
-	new_chunk->zone_type = zone->type;
+    new_chunk->zone_off = (uint32_t)((char *)new_chunk - (char *)zone);
+    atomic_store_explicit(&new_chunk->free, 0, memory_order_release);
+    new_chunk->size = aligned_size;
+    new_chunk->zone_type = zone->type;
 
-	zone->break_ptr = (char *)zone->break_ptr + needed;
+    zone->break_ptr = (char *)zone->break_ptr + needed;
 
-	return get_ptr_from_chunk(new_chunk);
-}
-
-void coalesce_forward(t_zone_header *zone, t_chunk_header *chunk) {
-	if (!zone || !chunk || !chunk->free)
-		return;
-
-	while (1) {
-		t_chunk_header *next = next_chunk(chunk);
-
-		if ((void *)next >= zone->break_ptr)
-			break;
-
-		if (!next->free)
-			break;
-
-		chunk->size += sizeof(t_chunk_header) + next->size;
-	}
+    return get_ptr_from_chunk(new_chunk);
 }

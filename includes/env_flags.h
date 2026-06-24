@@ -31,12 +31,12 @@
  * as the parsing is kept minimal for performance issues
  */
 typedef struct s_env_flags {
-  uint8_t m_alloc_logs : 2;
-  uint8_t m_check_wild_ptr : 1;
-  uint8_t m_check_level : 2;
-  uint8_t m_fill_on_free : 1;
-  uint8_t m_color : 1;
-  uint8_t : 1;
+    uint8_t m_alloc_logs : 2;
+    uint8_t m_check_wild_ptr : 1;
+    uint8_t m_check_level : 2;
+    uint8_t m_fill_on_free : 1;
+    uint8_t m_color : 1;
+    uint8_t : 1;
 } t_env_flags;
 
 void constructor();
@@ -44,24 +44,16 @@ t_env_flags *env_flags_singleton();
 
 // ===== GETTERS
 
-static inline uint8_t env_get_alloc_logs(const t_env_flags *flags) {
-  return flags->m_alloc_logs;
-}
+static inline uint8_t env_get_alloc_logs(const t_env_flags *flags) { return flags->m_alloc_logs; }
 
 static inline int env_is_check_wild_ptr(const t_env_flags *flags) {
-  return flags->m_check_wild_ptr;
+    return flags->m_check_wild_ptr;
 }
 
-static inline uint8_t env_get_check_level(const t_env_flags *flags) {
-  return flags->m_check_level;
-}
+static inline uint8_t env_get_check_level(const t_env_flags *flags) { return flags->m_check_level; }
 
-static inline int env_is_fill_on_free(const t_env_flags *flags) {
-  return flags->m_fill_on_free;
-}
+static inline int env_is_fill_on_free(const t_env_flags *flags) { return flags->m_fill_on_free; }
 
-static inline int env_is_color(const t_env_flags *flags) {
-  return flags->m_color;
-}
+static inline int env_is_color(const t_env_flags *flags) { return flags->m_color; }
 
 #endif

@@ -2,59 +2,61 @@
 #define ALLOC_H
 
 #define _DEFAULT_SOURCE
+#include "compiler_attrs.h"
+#include "libft.h"
+#include <pthread.h>
 #include <stdalign.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include <sys/mman.h>
-#include <pthread.h>
-#include "libft.h"
-#include "compiler_attrs.h"
 
 #if defined(MAP_ANONYMOUS)
-    // use MAP_ANONYMOUS
+// use MAP_ANONYMOUS
 #elif defined(MAP_ANON)
-    #define MAP_ANONYMOUS MAP_ANON
+#define MAP_ANONYMOUS MAP_ANON
 #else
-    #error "Neither MAP_ANONYMOUS nor MAP_ANON is defined"
+#error "Neither MAP_ANONYMOUS nor MAP_ANON is defined"
 #endif
 
 #define ALIGNMENT alignof(max_align_t)
 
-typedef enum e_zone_type {
-	ZONE_TINY,
-	ZONE_SMALL,
-	ZONE_LARGE
-} t_zone_type;
-
-typedef struct s_zone_header {
-	struct s_zone_header    *next;
-	size_t                  zone_size;
-	t_zone_type             type;
-	void                    *break_ptr;
-	pthread_t               owner;
-} __attribute__((aligned(ALIGNMENT))) t_zone_header;
+typedef enum e_zone_type { ZONE_TINY, ZONE_SMALL, ZONE_LARGE } t_zone_type;
 
 typedef struct s_chunk_header {
-	size_t                  size;
-	uint32_t                zone_off;
-	_Atomic uint8_t         free;
-	uint8_t                 zone_type;
+    size_t size;
+    uint32_t zone_off;
+    _Atomic uint8_t free;
+    uint8_t zone_type;
 } __attribute__((aligned(ALIGNMENT))) t_chunk_header;
 
+#define CHUNK_NEXT_FREE(chunk) (*(t_chunk_header **)((char *)(chunk) + sizeof(t_chunk_header)))
+
+typedef struct s_zone_header {
+    struct s_zone_header *next;
+    struct s_zone_header *next_global;
+    _Atomic(t_chunk_header *) free_list;
+    size_t zone_size;
+    t_zone_type type;
+    void *break_ptr;
+    pthread_t owner;
+} __attribute__((aligned(ALIGNMENT))) t_zone_header;
+
 typedef struct s_zones {
-	t_zone_header   *tiny;
-	t_zone_header   *small;
+    t_zone_header *tiny;
+    t_zone_header *small;
 } t_zones;
 
 extern __thread t_zones g_thread_zones;
 
-extern pthread_mutex_t  g_large_mutex;
-extern t_zone_header    *g_large_zones;
+extern pthread_mutex_t g_large_mutex;
+extern t_zone_header *g_large_zones;
 
-void    *malloc(size_t size) ATTR_HOT ATTR_MALLOC;
-void    free(void *ptr) ATTR_HOT;
-void    *realloc(void *ptr, size_t size) ATTR_HOT ATTR_MALLOC;
-void    show_alloc_mem(void) ATTR_COLD;
-void    show_alloc_mem_ex(void) ATTR_COLD;
+extern t_zone_header *g_all_zones;
+
+void *malloc(size_t size) ATTR_HOT ATTR_MALLOC;
+void free(void *ptr) ATTR_HOT;
+void *realloc(void *ptr, size_t size) ATTR_HOT ATTR_MALLOC;
+void show_alloc_mem(void) ATTR_COLD;
+void show_alloc_mem_ex(void) ATTR_COLD;
 
 #endif

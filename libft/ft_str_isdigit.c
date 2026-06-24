@@ -12,17 +12,15 @@
 
 #include "libft.h"
 
-bool	ft_str_isdigit(char *str)
-{
-	if (!str || *str == '\0')
-		return (false);
-	if (*str == '-' || *str == '+')
-		str++;
-	while (*str)
-	{
-		if (!ft_isdigit(*str))
-			return (false);
-		str++;
-	}
-	return (true);
+bool ft_str_isdigit(char *str) {
+    if (!str || *str == '\0')
+        return (false);
+    if (*str == '-' || *str == '+')
+        str++;
+    while (*str) {
+        if (!ft_isdigit(*str))
+            return (false);
+        str++;
+    }
+    return (true);
 }

@@ -12,26 +12,20 @@
 
 #include "ft_printf.h"
 
-int	print_char(int c)
-{
-	return (write(1, &c, 1));
-}
+int print_char(int c) { return (write(1, &c, 1)); }
 
-int	print_string(char *s)
-{
-	int	count;
+int print_string(char *s) {
+    int count;
 
-	count = 0;
-	if (!s)
-	{
-		count = print_string("(null)");
-		return (count);
-	}
-	while (*s)
-	{
-		print_char((int)*s);
-		s++;
-		count++;
-	}
-	return (count);
+    count = 0;
+    if (!s) {
+        count = print_string("(null)");
+        return (count);
+    }
+    while (*s) {
+        print_char((int)*s);
+        s++;
+        count++;
+    }
+    return (count);
 }

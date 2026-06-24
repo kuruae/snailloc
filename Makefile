@@ -91,12 +91,4 @@ test: all
 	rm -f $$TEST_PROG; \
 	exit $$TEST_EXIT
 
-docker:
-	./build.sh 
-	./run.sh
-
-dockerclean:
-	docker rmi malloc-container
-	docker rmi ubuntu:25.10
-
 .PHONY: all clean fclean re clangd docker dockerclean test

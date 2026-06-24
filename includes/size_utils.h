@@ -1,9 +1,9 @@
 #ifndef SIZE_UTILS_H
 #define SIZE_UTILS_H
 
+#include "compiler_attrs.h"
 #include <stddef.h>
 #include <unistd.h>
-#include "compiler_attrs.h"
 
 #define TINY_RATIO 32
 #define SMALL_RATIO 4

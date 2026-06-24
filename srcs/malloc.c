@@ -1,86 +1,86 @@
 #include "alloc.h"
+#include "chunk_utils.h"
 #include "compiler_attrs.h"
 #include "log_utils.h"
 #include "size_utils.h"
-#include "zones.h"
-#include "chunk_utils.h"
 #include "thread_cleanup.h"
+#include "zones.h"
 
 static size_t get_large_alloc_size(size_t size) {
-	size_t total = sizeof(t_zone_header) + sizeof(t_chunk_header) + size;
-	size_t page_size = get_system_page_size();
+    size_t total = sizeof(t_zone_header) + sizeof(t_chunk_header) + size;
+    size_t page_size = get_system_page_size();
 
-	return (total + (page_size - 1)) & ~(page_size - 1);
+    return (total + (page_size - 1)) & ~(page_size - 1);
 }
 
 static void *alloc_large(size_t size) {
-	size_t zone_size = get_large_alloc_size(size);
+    size_t zone_size = get_large_alloc_size(size);
 
-	t_zone_header *zone = create_zone(zone_size, ZONE_LARGE);
-	if (UNLIKELY(!zone))
-		return NULL;
+    t_zone_header *zone = create_zone(zone_size, ZONE_LARGE);
+    if (UNLIKELY(!zone))
+        return NULL;
 
-	add_large_zone(zone);
+    add_large_zone(zone);
 
-	t_chunk_header *chunk = get_first_chunk(zone);
-	chunk->zone_off = sizeof(t_zone_header);
-	atomic_store_explicit(&chunk->free, 0, memory_order_release);
-	chunk->size = size;
-	chunk->zone_type = ZONE_LARGE;
+    t_chunk_header *chunk = get_first_chunk(zone);
+    chunk->zone_off = sizeof(t_zone_header);
+    atomic_store_explicit(&chunk->free, 0, memory_order_release);
+    chunk->size = size;
+    chunk->zone_type = ZONE_LARGE;
 
-	zone->break_ptr = (char *)chunk + sizeof(t_chunk_header) + size;
+    zone->break_ptr = (char *)chunk + sizeof(t_chunk_header) + size;
 
-	return get_ptr_from_chunk(chunk);
+    return get_ptr_from_chunk(chunk);
 }
 
 static void *alloc_tiny(size_t size) {
-	t_zone_header *zone = g_thread_zones.tiny;
+    t_zone_header *zone = g_thread_zones.tiny;
 
-	while (zone) {
-		t_chunk_header *chunk = find_free_chunk(zone, size);
-		if (LIKELY(chunk != NULL)) {
-			atomic_store_explicit(&chunk->free, 0, memory_order_release);
-			return get_ptr_from_chunk(chunk);
-		}
+    while (zone) {
+        t_chunk_header *chunk = find_free_chunk(zone, size);
+        if (LIKELY(chunk != NULL)) {
+            atomic_store_explicit(&chunk->free, 0, memory_order_release);
+            return get_ptr_from_chunk(chunk);
+        }
 
-		void *ptr = carve_chunk(zone, size);
-		if (LIKELY(ptr != NULL))
-			return ptr;
+        void *ptr = carve_chunk(zone, size);
+        if (LIKELY(ptr != NULL))
+            return ptr;
 
-		zone = zone->next;
-	}
+        zone = zone->next;
+    }
 
-	zone = create_zone(get_zone_size(get_tiny_max()), ZONE_TINY);
-	if (UNLIKELY(!zone))
-		return NULL;
+    zone = create_zone(get_zone_size(get_tiny_max()), ZONE_TINY);
+    if (UNLIKELY(!zone))
+        return NULL;
 
-	add_zone(zone);
-	return carve_chunk(zone, size);
+    add_zone(zone);
+    return carve_chunk(zone, size);
 }
 
 static void *alloc_small(size_t size) {
-	t_zone_header *zone = g_thread_zones.small;
+    t_zone_header *zone = g_thread_zones.small;
 
-	while (zone) {
-		t_chunk_header *chunk = find_free_chunk(zone, size);
-		if (LIKELY(chunk != NULL)) {
-			atomic_store_explicit(&chunk->free, 0, memory_order_release);
-			return get_ptr_from_chunk(chunk);
-		}
+    while (zone) {
+        t_chunk_header *chunk = find_free_chunk(zone, size);
+        if (LIKELY(chunk != NULL)) {
+            atomic_store_explicit(&chunk->free, 0, memory_order_release);
+            return get_ptr_from_chunk(chunk);
+        }
 
-		void *ptr = carve_chunk(zone, size);
-		if (LIKELY(ptr != NULL))
-			return ptr;
+        void *ptr = carve_chunk(zone, size);
+        if (LIKELY(ptr != NULL))
+            return ptr;
 
-		zone = zone->next;
-	}
+        zone = zone->next;
+    }
 
-	zone = create_zone(get_zone_size(get_small_max()), ZONE_SMALL);
-	if (UNLIKELY(!zone))
-		return NULL;
+    zone = create_zone(get_zone_size(get_small_max()), ZONE_SMALL);
+    if (UNLIKELY(!zone))
+        return NULL;
 
-	add_zone(zone);
-	return carve_chunk(zone, size);
+    add_zone(zone);
+    return carve_chunk(zone, size);
 }
 
 void *malloc(size_t size) {
@@ -90,20 +90,20 @@ void *malloc(size_t size) {
         cleanup_registered = 1;
     }
 
-	if (UNLIKELY(size == 0))
-		return NULL;
+    if (UNLIKELY(size == 0))
+        return NULL;
 
-	if (UNLIKELY(size > (size_t)-1 - sizeof(t_zone_header) - sizeof(t_chunk_header)))
-		return NULL;
+    if (UNLIKELY(size > (size_t)-1 - sizeof(t_zone_header) - sizeof(t_chunk_header)))
+        return NULL;
 
-	void *ptr;
-	if (size <= get_tiny_max())
-		ptr = alloc_tiny(size);
-	else if (size <= get_small_max())
-		ptr = alloc_small(size);
-	else
-		ptr = alloc_large(size);
+    void *ptr;
+    if (size <= get_tiny_max())
+        ptr = alloc_tiny(size);
+    else if (size <= get_small_max())
+        ptr = alloc_small(size);
+    else
+        ptr = alloc_large(size);
 
-	log_malloc(ptr, size);
-	return ptr;
+    log_malloc(ptr, size);
+    return ptr;
 }
