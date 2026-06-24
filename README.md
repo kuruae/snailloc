@@ -102,7 +102,7 @@ make test TESTFILE=tests/test_small.c
 
 ## Performance (vs glibc)
 
-| Benchmark              | ft_heap   | glibc     | Ratio  |
+| Benchmark              | snailloc  | glibc     | Ratio  |
 |------------------------|-----------|-----------|--------|
 | tiny 100k alloc+free   | 79 ms     | 4.6 ms    | 17×    |
 | mixed 50k ×5 rounds    | 18 347 ms | 40 ms     | 458×   |
