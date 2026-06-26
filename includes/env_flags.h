@@ -39,8 +39,8 @@ typedef struct s_env_flags {
     uint8_t : 1;
 } t_env_flags;
 
-void constructor();
-t_env_flags *env_flags_singleton();
+void constructor() ATTR_COLD;
+t_env_flags *env_flags_singleton() ATTR_PURE;
 
 // ===== GETTERS
 

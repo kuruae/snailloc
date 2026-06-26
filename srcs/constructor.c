@@ -1,10 +1,11 @@
+#include "compiler_attrs.h"
 #include "env_flags.h"
 #include "ft_fprintf.h"
 #include "libft.h"
 #include <stdint.h>
 #include <stdlib.h>
 
-void __attribute__((constructor)) constructor();
+void __attribute__((constructor)) constructor() ATTR_COLD;
 
 // ===== SETTERS
 

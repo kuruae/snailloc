@@ -1,0 +1,15 @@
+  malloc from: /usr/lib/libc.so.6
+
+  Single-threaded (cycles per operation):
+  tiny 100k alloc+free          29  cyc/op
+  small 50k alloc+free         126  cyc/op
+  large 1k alloc+free          984  cyc/op
+  mixed 50k ×5 rounds         124  cyc/op
+  stress 256×200               34  cyc/op
+  realloc 10k                   33  cyc/op
+
+  Multi-threaded (cycles per alloc+free, per-thread 50k):
+  2 threads                     80  cyc/op
+  4 threads                    103  cyc/op
+  8 threads                    138  cyc/op
+

@@ -91,4 +91,13 @@ test: all
 	rm -f $$TEST_PROG; \
 	exit $$TEST_EXIT
 
-.PHONY: all clean fclean re clangd docker dockerclean test
+bench_cycles: all
+	$(CC) tests/benchmark_cycles.c -ldl -O2 -march=native -o $@
+	@printf "$(YELLOW)Running with glibc...$(RESET)\n"
+	./$@ | tee $@.glibc.txt
+	@printf "\n$(YELLOW)Running with ft_malloc...$(RESET)\n"
+	LD_PRELOAD=./$(LINK_NAME) ./$@ | tee $@.ft_malloc.txt
+	@printf "\n$(GREEN)Results saved to $@.glibc.txt and $@.ft_malloc.txt$(RESET)\n"
+	rm -f $@
+
+.PHONY: all clean fclean re clangd docker dockerclean test bench_cycles

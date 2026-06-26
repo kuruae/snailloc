@@ -34,8 +34,8 @@ static void freelist_push(t_zone_header *zone, t_chunk_header *chunk) {
     t_chunk_header *head = atomic_load_explicit(&zone->free_list, memory_order_acquire);
     do {
         CHUNK_NEXT_FREE(chunk) = head;
-    } while (!atomic_compare_exchange_weak_explicit(&zone->free_list, &head, chunk,
-                                                    memory_order_release, memory_order_acquire));
+} while (!atomic_compare_exchange_weak_explicit(&zone->free_list, &head, chunk,
+                                                     memory_order_release, memory_order_relaxed));
 }
 
 void free(void *ptr) {
@@ -52,13 +52,32 @@ void free(void *ptr) {
         return;
     }
 
-    t_zone_header *zone = find_zone_by_addr(ptr);
-    if (UNLIKELY(!zone))
-        zone = find_large_zone(ptr);
+    /* ── Fast path: cached zone ────────────────────────────────────────
+     * Most frees happen in the same thread that allocated, and consecutive
+     * frees often target the same zone.  A TLS cache skips the O(n) global
+     * list walk (~1000 zones after 100k tiny allocs).                      */
+    static __thread t_zone_header *cached_zone = NULL;
+
+    t_zone_header *zone = NULL;
+    if (LIKELY(cached_zone)) {
+        if ((char *)ptr >= (char *)cached_zone &&
+            (char *)ptr < (char *)cached_zone + cached_zone->zone_size) {
+            zone = cached_zone;
+        }
+    }
 
     if (UNLIKELY(!zone)) {
-        handle_error("free(): pointer not in any known zone", check_level);
-        return;
+        zone = find_zone_by_addr(ptr);
+        if (UNLIKELY(!zone))
+            zone = find_large_zone(ptr);
+
+        if (UNLIKELY(!zone)) {
+            handle_error("free(): pointer not in any known zone", check_level);
+            return;
+        }
+
+        if (zone->type != ZONE_LARGE)
+            cached_zone = zone;
     }
 
     t_chunk_header *chunk = get_chunk_from_ptr(ptr);

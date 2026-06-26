@@ -1,0 +1,15 @@
+  malloc from: ./libft_malloc.so
+
+  Single-threaded (cycles per operation):
+  tiny 100k alloc+free        1269  cyc/op
+  small 50k alloc+free        1048  cyc/op
+  large 1k alloc+free        42831  cyc/op
+  mixed 50k ×5 rounds        2017  cyc/op
+  stress 256×200              106  cyc/op
+  realloc 10k                  484  cyc/op
+
+  Multi-threaded (cycles per alloc+free, per-thread 50k):
+  2 threads                    155  cyc/op
+  4 threads                    264  cyc/op
+  8 threads                    508  cyc/op
+

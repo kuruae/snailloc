@@ -8,7 +8,7 @@ t_chunk_header *find_free_chunk(t_zone_header *zone, size_t size) {
 		t_chunk_header *next = CHUNK_NEXT_FREE(head);
 		if (head->size >= size) {
 			if (atomic_compare_exchange_weak_explicit(&zone->free_list,
-			    &head, next, memory_order_acquire, memory_order_acquire))
+			    &head, next, memory_order_acquire, memory_order_relaxed))
 				return head;
 		} else {
 			break;
