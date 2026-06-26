@@ -74,18 +74,18 @@ clangd: clean
 
 test: all
 	@if [ -z "$(TESTFILE)" ]; then \
-		echo "$(RED)Usage: make test TESTFILE=path/to/test.c$(RESET)"; \
-		echo "Example: make test TESTFILE=tests/tiny.c"; \
+		printf "$(RED)Usage: make test TESTFILE=path/to/test.c$(RESET)"\n; \
+		printf "Example: make test TESTFILE=tests/tiny.c\n"; \
 		exit 1; \
 	fi; \
 	if [ ! -f "$(TESTFILE)" ]; then \
-		echo "$(RED)Error: Test file '$(TESTFILE)' not found$(RESET)"; \
+		printf "$(RED)Error: Test file '$(TESTFILE)' not found$(RESET)\n"; \
 		exit 1; \
 	fi; \
 	TEST_PROG=$$(basename $(TESTFILE) .c); \
-	echo "$(YELLOW)Compiling test: $(TESTFILE)$(RESET)"; \
+	printf "$(YELLOW)Compiling test: $(TESTFILE)$(RESET)\n"; \
 	$(CC) $(TESTFILE) -L. -lft_malloc -Iincludes -o $$TEST_PROG || exit 1; \
-	echo "$(GREEN)Running test with $(PLATFORM_MSG)...$(RESET)"; \
+	printf "$(GREEN)Running test with $(PLATFORM_MSG)...$(RESET)\n"; \
 	$(DYN_LIB_PATH_VAR)=$$(pwd) ./$$TEST_PROG; \
 	TEST_EXIT=$$?; \
 	rm -f $$TEST_PROG; \

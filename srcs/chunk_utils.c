@@ -3,18 +3,18 @@
 #include "compiler_attrs.h"
 
 t_chunk_header *find_free_chunk(t_zone_header *zone, size_t size) {
-    t_chunk_header *head = atomic_load_explicit(&zone->free_list, memory_order_acquire);
-    while (head) {
-        t_chunk_header *next = CHUNK_NEXT_FREE(head);
-        if (head->size >= size) {
-            if (atomic_compare_exchange_weak_explicit(&zone->free_list, &head, next,
-                                                      memory_order_acquire, memory_order_acquire))
-                return head;
-        } else {
-            break;
-        }
-    }
-    return NULL;
+	t_chunk_header *head = atomic_load_explicit(&zone->free_list, memory_order_acquire);
+	while (head) {
+		t_chunk_header *next = CHUNK_NEXT_FREE(head);
+		if (head->size >= size) {
+			if (atomic_compare_exchange_weak_explicit(&zone->free_list,
+			    &head, next, memory_order_acquire, memory_order_acquire))
+				return head;
+		} else {
+			break;
+		}
+	}
+	return NULL;
 }
 
 static inline size_t align_size(size_t size) { return (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1); }

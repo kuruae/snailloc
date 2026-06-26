@@ -1,33 +1,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 // Test cases that should fail gracefully or expose bugs
 int main(void) {
     printf("=== FAILURE & ROBUSTNESS TESTS ===\n\n");
 
-    // Test 1: Double free detection (undefined behavior, but shouldn't crash)
-    printf("Test 1: Double free (undefined behavior)\n");
-    void *ptr = malloc(100);
-    if (!ptr) {
-        printf("  FAIL: Initial allocation failed\n");
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failure");
         return 1;
     }
-    free(ptr);
-    printf("  First free succeeded\n");
 
-    // Second free - this is WRONG and may crash or corrupt
-    // In a production allocator, this should be detected
-    printf("  Attempting double free (may crash or corrupt)...\n");
-    free(ptr);
-    printf("  WARNING: Double free did not crash (may have corrupted state)\n");
+    if (pid == 0) {
+        // Test 1: Double free detection (undefined behavior, but shouldn't crash)
+        printf("Test 1: Double free (undefined behavior)\n");
+        void *ptr = malloc(100);
+        if (!ptr) {
+            printf("  FAIL: Initial allocation failed\n");
+            return 1;
+        }
 
-    // Test 2: Free invalid pointer (not from malloc)
-    printf("\nTest 2: Free invalid pointer\n");
-    int stack_var = 42;
-    printf("  Attempting to free stack pointer (undefined behavior)...\n");
-    free(&stack_var);
-    printf("  WARNING: Freeing stack pointer did not crash\n");
+        free(ptr);
+        printf("  First free succeeded\n");
+
+        // Second free - this is WRONG and may crash or corrupt
+        printf("  Attempting double free (may crash or corrupt)...\n");
+        free(ptr);
+        printf("  WARNING: Double free did not crash (may have corrupted state)\n");
+        exit(0);
+    }
+
+    int status;
+    waitpid(pid, &status, 0);
+    if (WIFSIGNALED(status)) {
+        printf("Properly crashed!\n");
+    } else {
+        printf("Could be simply corrupted with UB but check it\n");
+    }
+
+    pid = fork();
+    if (pid < 0) {
+        perror("fork failure");
+        return 1;
+    }
+
+    if (pid == 0) {
+        // Test 2: Free invalid pointer (not from malloc)
+        printf("\nTest 2: Free invalid pointer\n");
+        int stack_var = 42;
+        printf("  Attempting to free stack pointer (undefined behavior)...\n");
+        free(&stack_var);
+        printf("  WARNING: Freeing stack pointer did not crash\n");
+    }
+    status = 0;
+    waitpid(pid, &status, 0);
+    if (WIFSIGNALED(status)) {
+        printf("Properly crashed!\n");
+    } else {
+        printf("Could be simply corrupted with UB but returning an error just in case\n");
+        return 1;
+    }
 
     // Test 3: Write past allocation boundary
     printf("\nTest 3: Buffer overflow detection\n");
@@ -135,6 +171,5 @@ int main(void) {
 
     printf("\n=== FAILURE TESTS COMPLETE ===\n");
     printf("Note: Some tests intentionally trigger undefined behavior\n");
-    printf("      A robust allocator should handle these gracefully\n");
     return 0;
 }

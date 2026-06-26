@@ -37,7 +37,11 @@ void test_allocation(const char *name, size_t size) {
 
     free(ptr);
 
-    print_memory("After free ", ptr, size);
+    if (size > 4096) {
+        printf("After free : (LARGE — memory unmapped)\n");
+    } else {
+        print_memory("After free ", ptr, size);
+    }
 }
 
 int main(void) {
