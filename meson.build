@@ -6,6 +6,7 @@ project(
     'cpp_std=c++23',               
     'warning_level=3', # -Wall, -Wextra ...
     'werror=false',
+    'cpp_stdlib=libc++',
     'buildtype=debug', 
   ],
 )

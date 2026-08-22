@@ -3,6 +3,7 @@ build*/
 _build/
 meson-logs/
 meson-private/
+.cache/
 
 compile_commands.json
 

@@ -1,6 +1,10 @@
+#pragma once
+
 #include <cstddef>
 #include <cstdint>
 #include <new>
+
+namespace snail {
 
 constexpr size_t POOL_SIZE = 2 * 1024 * 1024;
 constexpr size_t REGULAR_ALLOC_MAX = 64 * 1024;
@@ -11,3 +15,5 @@ constexpr size_t MAX_CHUNKS_PER_POOL = POOL_SIZE / MIN_CHUNK_SIZE;
 constexpr size_t BITMAP_WORDS = MAX_CHUNKS_PER_POOL / 64;
 
 constexpr size_t CACHELINE_SIZE = std::hardware_destructive_interference_size;
+
+} // namespace snail

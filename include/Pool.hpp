@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Mailbox.hpp"
-#include "const.hpp"
+#include "constants.hpp"
 #include <expected>
 #include <sys/mman.h>
 #include <thread>
+
+namespace snail {
 
 struct alignas(CACHELINE_SIZE) Pool {
     static_assert(std::has_single_bit(POOL_SIZE));
@@ -68,3 +70,5 @@ static std::expected<void *, int> allocatePool() noexcept {
 
     return reinterpret_cast<void *>(alignedAddress);
 }
+
+} // namespace snail

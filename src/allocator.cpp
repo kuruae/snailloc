@@ -1,6 +1,8 @@
-#include "const.hpp"
+#include "constants.hpp"
 #include "snailloc.hpp"
 #include <sys/mman.h>
+
+namespace snail {
 
 void *snailloc(size_t size) {
     void *ptr{nullptr};
@@ -8,3 +10,7 @@ void *snailloc(size_t size) {
         return ptr; // TODO
     return ptr;
 }
+
+} // namespace snail
+
+// void *malloc(size_t size) {}
