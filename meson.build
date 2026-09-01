@@ -3,14 +3,31 @@ project(
   'cpp',
   version: '0.1.0',
   default_options: [
-    'cpp_std=c++23',               
-    'warning_level=3', # -Wall, -Wextra ...
+    'cpp_std=c++23',
+    'warning_level=3',
     'werror=false',
-    'cpp_stdlib=libc++',
-    'buildtype=debug', 
+    'buildtype=debug',
   ],
 )
 
+cpp_compiler = meson.get_compiler('cpp')
+
+extra_warnings = [
+  '-Wconversion',
+  '-Wshadow',
+  '-Wnon-virtual-dtor',
+  '-Wold-style-cast',
+  '-Wcast-align',
+  '-Wnull-dereference',
+  '-Wno-interference-size', 
+]
+
+add_project_arguments(
+  cpp_compiler.get_supported_arguments(extra_warnings),
+  language: 'cpp',
+)
+
+# Public vs. Private include directories
 inc = include_directories('include')
 
 snailloc_sources = files(
@@ -21,10 +38,11 @@ snailloc_lib = shared_library(
   'snailloc',
   snailloc_sources,
   include_directories: inc,
+  gnu_symbol_visibility: 'hidden', # Keeps internal symbols out of the shared object table
   install: true,
 )
 
-# Internal dependency object (makes linking tests/benchmarks easy for later)
+# Expose dependency for unit tests/benchmarks
 snailloc_dep = declare_dependency(
   include_directories: inc,
   link_with: snailloc_lib,
